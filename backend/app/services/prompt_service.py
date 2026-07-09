@@ -1,91 +1,80 @@
-"""
-Prompt Service using LangChain's ChatPromptTemplate
-This makes our prompts maintainable and versionable
-"""
-from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain.schema import SystemMessage, HumanMessage, AIMessage
-from typing import List, Dict
-from app.core.config import settings
+from langchain_core.prompts import (
+    ChatPromptTemplate,
+    MessagesPlaceholder,
+)
 
-logger = logging.getLogger(__name__)
+from langchain_core.messages import (
+    HumanMessage,
+    AIMessage,
+)
+
+
 class PromptService:
 
     def __init__(self):
-        """Initialize prompt templates """
-        # Primary system prompt - Travel Planner
-        self.travel_planner_prompt = ChatPromptTemplate([
-            ("system", """You are expert travel planner AI assistant for Dubai and UAE.
-             
 
-            Your expertise includes:
-            - Dubai tourism, attractions, and hidden gems
-            - Luxury travel and budget options
-            - Cultural considerations and local customs
-            - Weather patterns and best visiting times
-            - Dining, shopping, and entertainment options
-            - Transportation and logistics
-            - Safety and travel tips
-             
-            Response Guidelines:
-            - Be specific and actionable
-            - Provide practical tips (not just generic advice)
-            - Consider the user's preferences and constraints
-            - Offer alternatives when possible
-            - Be enthusiastic and engaging
-            - Acknowledge cultural sensitivities 
-             
-            Current Context:
-            - You're helping a traveler plan their visit to Dubai
-            - The user may be from any country
-            - Adjust recommendations based on budget, duration, and interests
-            - Include practical details like estimated costs, timing, and location info"""),
+        self.template = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    """
+                    You are an expert travel planner.
 
-            MessagesPlaceholder(variable_name="history"),
-            
-            ("human", "{input}") 
-        ])
+                    Responsibilities:
 
-        # Alternative prompt for testing (A/B testing ready)
-        self.concise_planner_prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are a concise Dubai travel planner. 
-            Keep responses under 100 words unless asked for details.
-            Focus on must-see attractions and practical tips."""),
-            MessagesPlaceholder(variable_name="history"),
-            ("human", "{input}")
-        ])
-        
-        # Default to the full planner
-        self.active_template = self.travel_planner_prompt
-        logger.info("PromptService initialized with travel planner template")
+                    - Recommend destinations
+                    - Suggest hotels
+                    - Estimate travel costs
+                    - Create daily itineraries
+
+                    Keep responses practical and concise.
+                  """,
+                ),
+
+                MessagesPlaceholder("history"),
+
+                (
+                    "human",
+                    "{input}",
+                ),
+            ]
+        )
     
-    # SYSTEM_PROMPT = """
-    #         You are an expert travel planner.
-            
-    #         Always:
-            
-    #         - Recommend destinations.
-    #         - Estimate costs.
-    #         - Suggest hotels.
-    #         - Give daily itinerary.
-            
-            
-            
-    #         Keep answers concise and practical.
-    #         """
-            
-    def build_prompt(self, history: list['dict']) -> str:
-        conversation = ""
+    
+    def convert_history(
+        self,
+        history: list[dict],
+    ):
         
-        for message in history:
-            conversation += (
-                f"{message['role']}: {message['content']}\n"
-            )
-        return f"""
-           {self.SYSTEM_PROMPT}
-
-           Conversation:
-
-          {conversation}
-
-           Assistant:
-     """       
+        messages = []
+        
+        for item in history:
+            
+            if item["role"] == "user":
+                
+                messages.append(
+                    HumanMessage(
+                        content=item["content"]
+                    )
+                )
+            else:
+                
+                messages.append(
+                    AIMessage(
+                        content=item["content"]
+                    )
+                )
+                
+        return messages
+    
+    def build_prompt(
+        self,
+        history: list[dict],
+        user_input: str,
+    ):
+        history_messages = self.convert_history(history)
+        
+        return self.template.invoke({
+             "history": history_messages,
+             "input": user_input,
+        })                  
