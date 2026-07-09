@@ -1,7 +1,3 @@
-from google import genai
-
-from app.config import GOOGLE_API_KEY
-from app.storage.memory import chat_memory
 from app.providers.gemini_provider import GeminiProvider
 from app.services.prompt_service import PromptService
 from app.services.memory_service import MemoryService
@@ -22,26 +18,27 @@ class ChatService:
                 
         
     
-    
         
     async def chat(self, session_id:  str, message: str) -> str:
-            history = self.memory.get_history(session_id)
             
             # User history
             self.memory.add_user_message(
                 session_id,
                 message
             )
+            # store history after user conversation
+            history = self.memory.get_history(session_id)
         
             
-            reply = await self.provider.generate(
-                self.prompt
+            prompt = await self.provider.generate(
+                self.prompt.build_prompt(history)
             )
-           
+            
+            reply = await self.provider.generate(prompt)
         
             self.memory.add_assistant_message(
                 session_id,
-                message
+                reply
             )
             
             return reply
