@@ -8,7 +8,6 @@ from langchain_core.messages import (
     AIMessage,
 )
 
-
 class PromptService:
 
     def __init__(self):
