@@ -6,6 +6,7 @@ from langchain_core.prompts import (
 from langchain_core.messages import (
     HumanMessage,
     AIMessage,
+    BaseMessage
 )
 
 class PromptService:
@@ -40,40 +41,14 @@ class PromptService:
         )
     
     
-    def convert_history(
-        self,
-        history: list[dict],
-    ):
-        
-        messages = []
-        
-        for item in history:
-            
-            if item["role"] == "user":
-                
-                messages.append(
-                    HumanMessage(
-                        content=item["content"]
-                    )
-                )
-            else:
-                
-                messages.append(
-                    AIMessage(
-                        content=item["content"]
-                    )
-                )
-                
-        return messages
-    
     def build_prompt(
         self,
-        history: list[dict],
+        history: list[BaseMessage],
         user_input: str,
     ):
-        history_messages = self.convert_history(history)
+       
         
         return self.template.invoke({
-             "history": history_messages,
+             "history": history,
              "input": user_input,
         })                  

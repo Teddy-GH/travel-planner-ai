@@ -1,30 +1,24 @@
 from collections import defaultdict
 
+from langchain_core.messages import (
+    HumanMessage,
+    AIMessage,
+    BaseMessage
+)
+
 class MemoryService:
     
     def __init__(self):
-        self.memory = defaultdict(list)
+        self.memory: dict[str, list[BaseMessage]] = defaultdict(list)
     
-    def get_history(self, session_id: str):
+    def get_history(self, session_id: str) -> list[BaseMessage]:
         return self.memory[session_id]
     
-    def add_user_message(
+
+    def add_message(
         self,
         session_id: str,
-        message: str
-    ): 
-        self.memory[session_id].append({
-            "role": "user",
-            "content": message
-        }) 
-        
-    def add_assistant_message(
-        self, 
-        session_id: str, 
         message: str,
-        ):
-          self.memory[session_id].append({
-              "role": "assistant",
-              "content": message
-          })
+    ):
+        self.memory[session_id].append(message)      
             

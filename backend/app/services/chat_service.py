@@ -1,6 +1,10 @@
 from app.providers.gemini_provider import GeminiProvider
 from app.services.prompt_service import PromptService
 from app.services.memory_service import MemoryService
+from langchain_core.messages import(
+    HumanMessage,
+    AIMessage
+)
 
 
 
@@ -22,9 +26,9 @@ class ChatService:
     async def chat(self, session_id:  str, message: str) -> str:
             
             # User history
-            self.memory.add_user_message(
+            self.memory.add_message(
                 session_id,
-                message
+                HumanMessage(content=message),
             )
             # store history after user conversation
             history = self.memory.get_history(session_id)
@@ -36,9 +40,9 @@ class ChatService:
             
             reply = await self.provider.generate(prompt)
         
-            self.memory.add_assistant_message(
+            self.memory.add_message(
                 session_id,
-                reply
+                AIMessage(content=reply),
             )
             
             return reply
