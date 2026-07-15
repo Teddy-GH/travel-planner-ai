@@ -6,6 +6,8 @@ from langchain_core.messages import(
     AIMessage
 )
 
+from app.tools import tool_registry
+
 
 
 class ChatService:
@@ -46,3 +48,16 @@ class ChatService:
             )
             
             return reply
+        
+        
+      
+
+
+    async def get_tools():
+        tool = tool_registry.get("weather")
+
+        result = await tool.execute(
+            city="Dubai"
+        )
+
+        print(result)
