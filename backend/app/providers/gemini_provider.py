@@ -1,19 +1,27 @@
 from google import genai
+from langchain_google_genai import ChatGoogleGenerativeAI
 from app.config import GOOGLE_API_KEY
+from app.services.prompt_service import PromptService
 
 client = genai.Client(api_key=GOOGLE_API_KEY)
 
 
 class GeminiProvider:
-    
-    async def generate(self, prompt: str) -> str:
-        
-        response = client.models.generate_content(
+
+    def __init__(self):
+        self.model = ChatGoogleGenerativeAI(
             model="gemini-2.5-flash",
-            contents=prompt,
+            google_api_key= GOOGLE_API_KEY,
+            temperature=0.7,
         )
         
-        return response.text
+    
+    async def generate(self, prompt: str) -> str:
+        messages = PromptService.build_prompt()
+        
+        response = client.models.ainvoke(messages)
+        
+        return response.content
     
     async def stream(self, prompt: str):
         stream = client.models.generate_content_stream(
