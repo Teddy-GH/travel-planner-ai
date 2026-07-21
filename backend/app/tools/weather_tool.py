@@ -7,14 +7,20 @@ class WeatherTool(BaseTool):
     
     description = "Get weather information"
     
+    parameters = {
+        "city": str
+    }
+    
     
     async def execute(
         self, 
         city: str,
         ):
         
+        # Mock implementation
         return {
             "city": city,
-            "temperature": 37,
+            "temperature": 35,
             "condition": "Sunny",
+            "humidity": 48,
         }

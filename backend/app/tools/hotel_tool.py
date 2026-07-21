@@ -7,6 +7,10 @@ class HotelTool(BaseTool):
     
     description = "Search hotels"
     
+    parameters = {
+        "city": str,
+    }
+    
     
     async def execute(
         self,
@@ -16,9 +20,11 @@ class HotelTool(BaseTool):
             {
                 "name": "Palm Resort",
                 "price": 180,
+                "city": city,
             },
             {
                 "name": "Dubai Grand",
                 "price": 220,
+                "city": city,
             },
         ]

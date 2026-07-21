@@ -7,6 +7,7 @@ from langchain_core.messages import(
 )
 
 from app.tools import tool_registry
+from app.tools.router import ToolRouter
 
 
 
@@ -16,6 +17,9 @@ class ChatService:
         self.provider = GeminiProvider()
         self.prompt = PromptService()
         self.memory = MemoryService()
+        self.tool_router = ToolRouter()
+        
+
     
     async def stream_chat(self, message: str):
         
@@ -27,21 +31,50 @@ class ChatService:
         
     async def chat(self, session_id:  str, message: str) -> str:
             
-            # User history
+            # Save user message
             self.memory.add_message(
                 session_id,
                 HumanMessage(content=message),
             )
+            
             # store history after user conversation
             history = self.memory.get_history(session_id)
         
+            # route to matching tool
+            tool = self.tool_router.route(message)
             
-            prompt = await self.provider.generate(
-                self.prompt.build_prompt(history)
-            )
+            # Build prompt
+            if tool:
+                
+                parameters = self.extractor.extract(
+                    tool,
+                    message,
+                )
+                
+                print(parameters)
+                
+                tool_result = await tool.execute(
+                    **parameters
+                )
             
+                prompt = await self.prompt.build_prompt(
+                    history=history,
+                    user_input=message,
+                    tool_result=tool_result,
+                    
+                )
+            
+            else:
+              
+                prompt = self.prompt.build_prompt(
+                        history=history,
+                        user_input=message
+                    )
+            
+            #  Generate AI response
             reply = await self.provider.generate(prompt)
-        
+            
+           #  Save assistant reply
             self.memory.add_message(
                 session_id,
                 AIMessage(content=reply),

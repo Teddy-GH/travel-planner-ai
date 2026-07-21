@@ -7,6 +7,12 @@ class CurrencyTool(BaseTool):
     
     description = "Convert currencies"
     
+    parameters = {
+        "amount": float,
+        "from_currency": str,
+        "to_currency": str,
+    }
+    
     
     async def execute(
         self,
